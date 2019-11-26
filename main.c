@@ -31,8 +31,8 @@ void recv_msg(int sd) {
     int msg_size;
     char buffer[MAX_MSG_SIZE];
     if(msg_size = read(sd , buffer, 1024) != 0)  {
-        struct APP_PROTO_MSG msg = proto_decode_msg(buffer);
-        log_protocol(msg);
+//        struct APP_PROTO_MSG msg = proto_decode_msg(buffer);
+//        log_protocol(msg);
     }
 };
 
@@ -158,8 +158,10 @@ void setup_socket_server() {
     }
 }
 
+
+
 int main(int argc , char *argv[])
 {
-    setup_socket_server();
+//    setup_socket_server();
     return 0;
 }

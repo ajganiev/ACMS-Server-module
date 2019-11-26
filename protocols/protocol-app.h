@@ -4,16 +4,16 @@
 /**
  * Message types used in Application protocol
  **/
+typedef enum MSG_TYPE {
+    T_HANDSHAKE,
+    T_PLANE_INFO,
+    T_PLANE_ONLINE,
+    T_PLANE_OFFLINE,
+    T_CHANGE_ROUTE
+};
 
-//Plane
-#define T_PLANE_INFO 0;
-#define T_PLANE_ONLINE 1;
-#define T_PLANE_OFFLINE 2;
-#define T_CHANGE_ROUTE 3;
 
-#define T_HANDSHAKE 5;
-
-typedef struct APP_PROTO_MSG {
+typedef struct AP_MSG {
     //Message header
     int id;
     int command;
@@ -25,9 +25,6 @@ typedef struct APP_PROTO_MSG {
     char body[];
 };
 
-struct APP_PROTO_MSG encrypt(struct APP_PROTO_MSG);
-struct APP_PROTO_MSG decrypt(struct APP_PROTO_MSG);
-int verify_protocol(struct APP_PROTO_MSG msg);
-char* proto_encode_msg(struct msg);
-struct APP_PROTO_MSG proto_decode_msg(char*);
+struct AP_MSG ap_msg_htonl(struct AP_MSG msg);
+
 #endif //ACMS_SERVER_PROTOCOL_APP_H

@@ -23,10 +23,4 @@ struct Plane {
     double cur_route[ROUTE_NODES];
 };
 
-/**
- * convert to string compatible with protocol
- * @return
- */
-char* convert_proto_msg();
-
 #endif //ACMS_SERVER_PLANE_H

@@ -3,4 +3,4 @@ project(acms_server C)
 
 set(CMAKE_C_STANDARD 99)
 
-add_executable(acms_server main.c protocols/protocol-app.h protocols/protocol-agc.h structures/plane.h)
+add_executable(acms_server main.c protocols/protocol-app.h protocols/protocol-agc.h structures/plane.h protocols/protocol-app.c)
