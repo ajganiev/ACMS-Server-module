@@ -11,6 +11,8 @@
 #include "socket.h"
 #include "mqueue.h"
 #include "message.h"
+#include "console.h"
+#include "../protocol/app-proto.h"
 
 #define MAX_CLIENTS 10
 
@@ -19,7 +21,7 @@
 #define SERVER_NAME "server"
 
 int listen_sock;
-peer_t connection_list[MAX_CLIENTS];
+socket_peer connection_list[MAX_CLIENTS];
 char read_buffer[1024]; // buffer for stdin
 
 void shutdown_properly(int code);
@@ -84,7 +86,7 @@ int start_listen_socket(int *listen_sock)
     perror("listen");
     return -1;
   }
-  printf("Accepting connections on port %d.\n", (int)SERVER_LISTEN_PORT);
+  printf("[ACMS] Running on port %d.\n", (int)SERVER_LISTEN_PORT);
  
   return 0;
 }
@@ -99,7 +101,7 @@ void shutdown_properly(int code)
     if (connection_list[i].socket != NO_SOCKET)
       close(connection_list[i].socket);
     
-  printf("Shutdown server properly.\n");
+  printf("[ACMS] Shutting down.\n");
   exit(code);
 }
 
@@ -143,31 +145,31 @@ int handle_new_connection()
   char client_ipv4_str[INET_ADDRSTRLEN];
   inet_ntop(AF_INET, &client_addr.sin_addr, client_ipv4_str, INET_ADDRSTRLEN);
   
-  printf("Incoming connection from %s:%d.\n", client_ipv4_str, client_addr.sin_port);
+  printf("[ACMS] %s:%d. connected\n", client_ipv4_str, client_addr.sin_port);
   
   int i;
   for (i = 0; i < MAX_CLIENTS; ++i) {
     if (connection_list[i].socket == NO_SOCKET) {
       connection_list[i].socket = new_client_sock;
-      connection_list[i].addres = client_addr;
+      connection_list[i].address = client_addr;
       connection_list[i].current_sending_byte   = -1;
       connection_list[i].current_receiving_byte = 0;
       return 0;
     }
   }
   
-  printf("There is too much connections. Close new connection %s:%d.\n", client_ipv4_str, client_addr.sin_port);
+  printf("[ACMS] Connection overflow, enough...: %s:%d.\n", client_ipv4_str, client_addr.sin_port);
   close(new_client_sock);
   return -1;
 }
 
-int close_client_connection(peer_t *client)
+int close_client_connection(socket_peer *client)
 {
-  printf("Close client socket for %s.\n", peer_get_addres_str(client));
+  printf("[ACMS] Closing connection with %s.\n", get_ip_str(client));
   
   close(client->socket);
   client->socket = NO_SOCKET;
-  dequeue_all(&client->send_buffer);
+    mq_flush(&client->send_buffer);
   client->current_sending_byte   = -1;
   client->current_receiving_byte = 0;
 }
@@ -175,54 +177,57 @@ int close_client_connection(peer_t *client)
 /* Reads from stdin and create new message. This message enqueues to send queueu. */
 int handle_read_from_stdin()
 {
+
   char read_buffer[DATA_MAXSIZE]; // buffer for stdin
-  if (read_from_stdin(read_buffer, DATA_MAXSIZE) != 0)
+
+  if (read_console(read_buffer, DATA_MAXSIZE) != 0)
     return -1;
   
-  // Create new message and enqueue it.
-  message_t new_message;
-  prepare_message(SERVER_NAME, read_buffer, &new_message);
-  print_message(&new_message);
+  // Create new message and mq_enqueue it.
+  g_msg new_message;
+  init_pl_size();
+  p_auth p = {"Aziz", "aj", "123"};
+    prepare_packet(0, SERVER_NAME, &new_message, &p);
+    log_msg(&new_message);
   
-  /* enqueue message for all clients */
+  /* mq_enqueue message for all clients */
   int i;
   for (i = 0; i < MAX_CLIENTS; ++i) {
     if (connection_list[i].socket != NO_SOCKET) {
-      if (peer_add_to_send(&connection_list[i], &new_message) != 0) {
-        printf("Send buffer was overflowed, we lost this message!\n");
+      if (mq_enqueue(&connection_list[i].send_buffer, &new_message) != 0) {
+        //printf("Send buffer was overflowed, we lost this message!\n");
         continue;
       }
-      printf("New message to send was enqueued right now.\n");
+      //printf("New message to send was enqueued right now.\n");
     }
   }
   
   return 0;
 }
 
-int handle_received_message(message_t *message)
+int handle_received_message(g_msg *message)
 {
-  printf("Received message from client.\n");
-  print_message(message);
+    log_msg(message);
   return 0;
 }
  
 int main(int argc, char **argv)
 {
+
+    printf("ACMS Server v.0.0.1 startup\n");
   if (setup_signals() != 0)
     exit(EXIT_FAILURE);
   
   if (start_listen_socket(&listen_sock) != 0)
     exit(EXIT_FAILURE);
-  
-  /* Set nonblock for stdin. */
+
   int flag = fcntl(STDIN_FILENO, F_GETFL, 0);
   flag |= O_NONBLOCK;
   fcntl(STDIN_FILENO, F_SETFL, flag);
-  
-  int i;
-  for (i = 0; i < MAX_CLIENTS; ++i) {
+
+  for (int i = 0; i < MAX_CLIENTS; ++i) {
     connection_list[i].socket = NO_SOCKET;
-    create_peer(&connection_list[i]);
+      sp_create(&connection_list[i]);
   }
   
   fd_set read_fds;
@@ -231,13 +236,11 @@ int main(int argc, char **argv)
   
   int high_sock = listen_sock;
   
-  printf("Waiting for incoming connections.\n");
-  
   while (1) {
     build_fd_sets(&read_fds, &write_fds, &except_fds);
     
     high_sock = listen_sock;
-    for (i = 0; i < MAX_CLIENTS; ++i) {
+    for (int i = 0; i < MAX_CLIENTS; ++i) {
       if (connection_list[i].socket > high_sock)
         high_sock = connection_list[i].socket;
     }
@@ -275,16 +278,16 @@ int main(int argc, char **argv)
           shutdown_properly(EXIT_FAILURE);
         }
         
-        for (i = 0; i < MAX_CLIENTS; ++i) {
+        for (int i = 0; i < MAX_CLIENTS; ++i) {
           if (connection_list[i].socket != NO_SOCKET && FD_ISSET(connection_list[i].socket, &read_fds)) {
-            if (receive_from_peer(&connection_list[i], &handle_received_message) != 0) {
+            if (sp_recv(&connection_list[i], &handle_received_message) != 0) {
               close_client_connection(&connection_list[i]);
               continue;
             }
           }
   
           if (connection_list[i].socket != NO_SOCKET && FD_ISSET(connection_list[i].socket, &write_fds)) {
-            if (send_to_peer(&connection_list[i]) != 0) {
+            if (sp_send(&connection_list[i]) != 0) {
               close_client_connection(&connection_list[i]);
               continue;
             }
@@ -298,7 +301,7 @@ int main(int argc, char **argv)
         }
     }
     
-    printf("And we are still waiting for clients' or stdin activity. You can type something to send:\n");
+
   }
  
   return 0;

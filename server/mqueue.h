@@ -1,58 +1,46 @@
-#ifndef UNTITLED_MQUEUE_H
-#define UNTITLED_MQUEUE_H
-
+#ifndef ACMS_MQUEUE_H
+#define ACMS_MQUEUE_H
 #include "message.h"
 
-/**
- * Message queue
- */
 typedef struct {
     int size;
-    message_t *data;
+    g_msg *data;
     int current;
-} message_queue_t;
+} peer_mq;
 
-int create_message_queue(int queue_size, message_queue_t *queue)
+int mq_create(int queue_size, peer_mq *queue)
 {
-    queue->data = calloc(queue_size, sizeof(message_t));
+    queue->data = calloc(queue_size, sizeof(g_msg));
     queue->size = queue_size;
     queue->current = 0;
     return 0;
 }
 
-void delete_message_queue(message_queue_t *queue)
+void mq_remove(peer_mq *queue)
 {
     free(queue->data);
     queue->data = NULL;
 }
 
-int enqueue(message_queue_t *queue, message_t *message)
+int mq_enqueue(peer_mq *queue, g_msg *message)
 {
-    if (queue->current == queue->size)
-        return -1;
-
-    //memcpy(&queue->data[queue->current], message, sizeof(message_t));
+    if (queue->current == queue->size) return -1;
     queue->data[queue->current] = *message;
     queue->current++;
-
     return 0;
 }
 
-int dequeue(message_queue_t *queue, message_t *message)
+int mq_dequeue(peer_mq *queue, g_msg *message)
 {
-    if (queue->current == 0)
-        return -1;
+    if (queue->current == 0) return -1;
     *message = queue->data[queue->current-1];
-    //memcpy(message, &queue->data[queue->current - 1], sizeof(message_t));
     queue->current--;
-
     return 0;
 }
 
-int dequeue_all(message_queue_t *queue)
+int mq_flush(peer_mq *queue)
 {
     queue->current = 0;
-
     return 0;
 }
-#endif //UNTITLED_MQUEUE_H
+#endif //ACMS_MQUEUE_H
