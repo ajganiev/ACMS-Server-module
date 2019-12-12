@@ -1,6 +1,13 @@
 #ifndef ACMS_MQUEUE_H
 #define ACMS_MQUEUE_H
-#include "message.h"
+
+#include "config.h"
+
+typedef struct {
+    int command;
+    char sender[SENDER_MAXSIZE];
+    char payload[DATA_MAXSIZE];
+} g_msg;
 
 typedef struct {
     int size;
@@ -43,4 +50,5 @@ int mq_flush(peer_mq *queue)
     queue->current = 0;
     return 0;
 }
+
 #endif //ACMS_MQUEUE_H

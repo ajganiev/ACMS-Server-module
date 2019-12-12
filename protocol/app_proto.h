@@ -1,7 +1,6 @@
-#include "../server/message.h"
-
 #ifndef ACMS_SERVER_APP_PROTO_H
 #define ACMS_SERVER_APP_PROTO_H
+#include "../server/mqueue.h"
 
 #define APP_MSG_NUM 2
 
@@ -34,19 +33,22 @@ int prepare_packet(int cmd, char *sender, g_msg *msg, void* data) {
     return 0;
 }
 
+
 int log_msg(g_msg *message)
 {
-
     printf("[ACMS][MSG]: Type: %d: Sender %s \n", message->command, message->sender);
     if(message->command == 1) {
         p_auth_resp *acc = (p_auth_resp*) &message->payload;
-        printf("[ACMS][MSG]: Payload: %d \\n", acc->status);
+        printf("[ACMS][MSG]: Payload: %d \n", acc->status);
     }
     else {
         p_auth *plane = (p_auth*) &message->payload;
-        printf("[ACMS][MSG]: Payload: %s \n", plane->name);
+        printf("[ACMS][MSG]: Payload: %s %s \n", plane->login, plane->pass);
     }
     return 0;
 }
+
+#include "app_sv_handlers.h"
+#include "app_cl_handlers.h"
 
 #endif //ACMS_SERVER_APP_PROTO_H

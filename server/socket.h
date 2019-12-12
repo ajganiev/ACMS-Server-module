@@ -38,8 +38,7 @@ char *get_ip_str(socket_peer *peer)
     return ret;
 }
 
-
-int sp_recv(socket_peer *peer, int (*message_handler)(g_msg *))
+int sp_recv(socket_peer *peer, int (*message_handler)(socket_peer*, g_msg *))
 {
     printf("[ACMS] Got message from %s.\n", get_ip_str(peer));
     size_t len_to_receive;
@@ -47,7 +46,7 @@ int sp_recv(socket_peer *peer, int (*message_handler)(g_msg *))
     size_t received_total = 0;
     do {
         if (peer->current_receiving_byte >= sizeof(peer->receiving_buffer)) {
-            message_handler(&peer->receiving_buffer);
+            message_handler(peer, &peer->receiving_buffer);
             peer->current_receiving_byte = 0;
         }
         len_to_receive = sizeof(peer->receiving_buffer) - peer->current_receiving_byte;
@@ -113,10 +112,12 @@ int sp_send(socket_peer *peer)
             send_total += send_count;
         }
     } while (send_count > 0);
-
     printf("[ACMS] sent %zu bytes in total.\n", send_total);
     return 0;
 }
 
+void mq_send(socket_peer *peer, g_msg *msg) {
+    mq_enqueue(&peer->send_buffer, msg);
+}
 
 #endif //ACMS_SOCKET_H

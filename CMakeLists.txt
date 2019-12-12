@@ -3,5 +3,5 @@ project(acms_server C)
 
 set(CMAKE_C_STANDARD 99)
 
-add_executable(server server/server.c server/mqueue.h airplane/plane.h protocol/app-proto.h)
-add_executable(client server/client.c server/mqueue.h server/socket.h server/message.h server/config.h server/console.h airplane/plane.h protocol/app-proto.h)
+add_executable(server server/server.c server/mqueue.h airplane/plane.h protocol/app_proto.h protocol/app_sv_handlers.h)
+add_executable(client server/client.c server/mqueue.h server/socket.h server/config.h server/console.h airplane/plane.h protocol/app_proto.h protocol/app_cl_handlers.h)
