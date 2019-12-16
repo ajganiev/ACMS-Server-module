@@ -11,7 +11,7 @@
 #include "socket.h"
 #include "mqueue.h"
 #include "console.h"
-#include "../protocol/app_proto.h"
+#include "../protocol/proto-common.h"
 
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wmissing-noreturn"
@@ -147,23 +147,23 @@ int stdin_handler()
 {
     char read_buffer[DATA_MAXSIZE]; // buffer for stdin
     if (read_console(read_buffer, DATA_MAXSIZE) != 0) return -1;
-    g_msg new_message;
-    init_pl_size();
-    p_auth p = {"Aziz", "aj", "123"};
-    prepare_packet(0, SERVER_NAME, &new_message, &p);
-    log_msg(&new_message);
-    broadcast_pck(&new_message);
+//    g_msg new_message;
+//    init_handlers();
+//    p_auth p = {"Aziz", "aj", "123"};
+//    prepare_packet(0, SERVER_NAME, &new_message, &p);
+//    log_msg(&new_message);
+//    broadcast_pck(&new_message);
     return 0;
 }
 
-int default_msg_handler(socket_peer *peer, g_msg *message)
-{
-    log_msg(message);
-    switch (message->command) {
-        case 0: handle_p_auth(peer, message);
-    }
-    return 0;
-}
+//int default_msg_handler(socket_peer *peer, g_msg *message)
+//{
+//    log_msg(message);
+//    switch (message->command) {
+//        case 0: handle_p_auth(peer, message);
+//    }
+//    return 0;
+//}
  
 int main(int argc, char **argv)
 {
@@ -214,7 +214,7 @@ int main(int argc, char **argv)
             }
             for (int i = 0; i < MAX_CLIENTS; ++i) {
               if (connection_list[i].socket != NO_SOCKET && FD_ISSET(connection_list[i].socket, &read_fds)) {
-                if (sp_recv(&connection_list[i], &default_msg_handler) != 0) {
+                if (sp_recv(&connection_list[i], &server_message_handler) != 0) {
                   close_client_connection(&connection_list[i]);
                   continue;
                 }

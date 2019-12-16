@@ -9,6 +9,7 @@ typedef struct {
     int socket;
     struct sockaddr_in address;
     peer_mq send_buffer;
+    peer_mq recv_buffer;
     g_msg sending_buffer;
     size_t current_sending_byte;
     g_msg receiving_buffer;

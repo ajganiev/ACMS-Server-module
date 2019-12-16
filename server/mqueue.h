@@ -5,6 +5,7 @@
 
 typedef struct {
     int command;
+    int id;
     char sender[SENDER_MAXSIZE];
     char payload[DATA_MAXSIZE];
 } g_msg;

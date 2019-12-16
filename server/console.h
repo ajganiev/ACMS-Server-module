@@ -5,7 +5,6 @@
 #include <stdlib.h>
 #include <string.h>
 
-
 int read_console(char *read_buffer, size_t max_len)
 {
     memset(read_buffer, 0, max_len);

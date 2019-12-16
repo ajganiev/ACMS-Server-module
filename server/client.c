@@ -10,7 +10,7 @@
 #include "socket.h"
 #include "mqueue.h"
 #include "console.h"
-#include "../protocol/app_proto.h"
+#include "../protocol/proto-common.h"
 
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wmissing-noreturn"
@@ -67,12 +67,12 @@ int handle_read_from_stdin(socket_peer *server, char *client_name)
     printf("Select command (AUTH - 0):");
     char read_buffer[DATA_MAXSIZE]; // buffer for stdin
     if (read_console(read_buffer, DATA_MAXSIZE) != 0) return -1;
-    g_msg new_message;
-    init_pl_size();
-    p_auth p = {"Aziz", "ajganiev", "123"};
-    prepare_packet(0, client_name, &new_message, &p);
-    log_msg(&new_message);
-    mq_send(server, &new_message);
+//    g_msg new_message;
+//    init_handlers();
+//    p_auth p = {"Aziz", "ajganiev", "123"};
+//    prepare_packet(0, client_name, &new_message, &p);
+//    log_msg(&new_message);
+//    mq_send(server, &new_message);
     return 0;
 }
 
@@ -83,15 +83,21 @@ void shutdown_properly(int code)
     exit(code);
 }
 
-int default_msg_handler(socket_peer *peer, g_msg *message)
-{
+//int default_msg_handler(socket_peer *peer, g_msg *message)
+//{
+//
+//    log_msg(message);
+//    switch (message->command) {
+//        case 1: handle_p_auth_resp(peer, message);
+//    }
+//    return 0;
+//}
 
-    log_msg(message);
-    switch (message->command) {
-        case 1: handle_p_auth_resp(peer, message);
-    }
-    return 0;
-    return 0;
+void send_auth() {
+    g_msg msg;
+    p_auth p = {"Aiz", "ajganiev", "123"};
+    prepare_packet(P_AUTH, "azz", &msg, &p, sizeof(p_auth));
+    mq_send(&server, &msg);
 }
 
 int main(int argc, char **argv)
@@ -109,6 +115,7 @@ int main(int argc, char **argv)
     fd_set write_fds;
     fd_set except_fds;
     int maxfd = server.socket;
+    send_auth();
     while (1) {
         build_fd_sets(&server, &read_fds, &write_fds, &except_fds);
         int activity = select(maxfd + 1, &read_fds, &write_fds, &except_fds, NULL);
@@ -129,7 +136,7 @@ int main(int argc, char **argv)
               shutdown_properly(EXIT_FAILURE);
             }
             if (FD_ISSET(server.socket, &read_fds)) {
-              if (sp_recv(&server, &default_msg_handler) != 0)
+              if (sp_recv(&server, &client_message_handler) != 0)
                 shutdown_properly(EXIT_FAILURE);
             }
             if (FD_ISSET(server.socket, &write_fds)) {
