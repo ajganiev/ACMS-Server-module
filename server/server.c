@@ -9,9 +9,9 @@
 #include <netinet/in.h>
 #include <unistd.h>
 #include "socket.h"
-#include "mqueue.h"
+#include "msg.h"
 #include "console.h"
-#include "../protocol/proto-common.h"
+#include "../protocol/proto-server.h"
 
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wmissing-noreturn"

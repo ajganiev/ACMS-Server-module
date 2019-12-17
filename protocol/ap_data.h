@@ -1,6 +1,6 @@
 #ifndef ACMS_SERVER_AP_DATA_H
 #define ACMS_SERVER_AP_DATA_H
-#include "../server/mqueue.h"
+#include "../server/msg.h"
 
 /**
  * Only data structures

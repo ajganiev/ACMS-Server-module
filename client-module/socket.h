@@ -4,11 +4,13 @@
 #include <stdlib.h>
 #include <string.h>
 #include "msg.h"
+#include <mqueue.h>
 
 typedef struct {
     int socket;
     struct sockaddr_in address;
     peer_mq send_buffer;
+    mqd_t *qd_client;
     g_msg sending_buffer;
     size_t current_sending_byte;
     g_msg receiving_buffer;
@@ -21,9 +23,10 @@ int sp_delete(socket_peer *peer)
     mq_remove(&peer->send_buffer);
 }
 
-int sp_create(socket_peer *peer)
+int sp_create(socket_peer *peer, mqd_t *qd_client)
 {
     mq_create(MAX_MESSAGES_BUFFER_SIZE, &peer->send_buffer);
+    peer->qd_client = qd_client;
     peer->current_sending_byte   = -1;
     peer->current_receiving_byte = 0;
     return 0;
