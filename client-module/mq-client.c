@@ -12,18 +12,19 @@
 #include "console.h"
 #include <sys/stat.h>
 #include <mqueue.h>
+#include <pthread.h>
 #include "../protocol/proto-client.h"
 
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wmissing-noreturn"
 socket_peer server;
 char client_name[256];
+pthread_t mq_thread;
 mqd_t qd_client, qd_server;
 
 void shutdown_properly(int code);
 
 int setup_posix_mq_client() {
-    long token_number = 1;
     printf ("[ACMS] Setting up POSIX MQ\n");
     struct mq_attr attr;
     attr.mq_flags = 0;
@@ -36,14 +37,31 @@ int setup_posix_mq_client() {
     return 0;
 }
 
+void mq_routine(void *args) {
+    socket_peer *sr = args;
+    while(1) {
+        char in_buffer [MSG_BUFFER_SIZE];
+        unsigned int size = mq_receive(qd_server, in_buffer, MSG_BUFFER_SIZE, NULL);
+        if (size == -1) {
+            perror (" ERROR ! Reciever: mq_receive");
+        } else {
+            in_buffer[size+1]='\0';
+            printf ("Reciever: message received: %s\n", in_buffer);
+            send_auth();
+            if (sp_send(&server) != 0)
+                shutdown_properly(EXIT_FAILURE);
+        }
+    }
+
+}
+
 int setup_posix_mq_server() {
-    long token_number = 1; // next token to be given to client
     struct mq_attr attr;
     attr.mq_flags = 0;
     attr.mq_maxmsg = MAX_MESSAGES;
     attr.mq_msgsize = 50;
     attr.mq_curmsgs = 0;
-    if ((qd_server = mq_open (SERVER_QUEUE_NAME, O_RDONLY | O_CREAT, QUEUE_PERMISSIONS, &attr)) == -1) {
+    if ((qd_server = mq_open (CLIENT_QUEUE_NAME, O_RDONLY | O_CREAT, QUEUE_PERMISSIONS, &attr)) == -1) {
         perror ("Reciever: mq_open (reciever)");
         exit (1);
     }
@@ -114,6 +132,7 @@ int handle_read_from_stdin(socket_peer *server, char *client_name)
 void shutdown_properly(int code)
 {
     sp_delete(&server);
+    pthread_join(mq_thread, NULL);
     printf("[ACMS Client] Going down.\n");
     exit(code);
 }
@@ -128,7 +147,7 @@ void send_auth() {
 int main(int argc, char **argv)
 {
     get_client_name(argc, argv);
-//    setup_posix_mq_client();
+    setup_posix_mq_client();
     setup_posix_mq_server();
     printf("[ACMS Client] User '%s'\n", client_name);
     sp_create(&server, &qd_client);
@@ -141,10 +160,10 @@ int main(int argc, char **argv)
     fd_set except_fds;
     fd_set mq_read;
     int maxfd = server.socket;
-//    send_auth();
+    pthread_create(&mq_thread, NULL, mq_routine, &server);
+    send_auth();
     while (1) {
         build_fd_sets(&server, &read_fds, &write_fds, &except_fds);
-        build_mq_fd_sets(&mq_read);
         int activity = select(maxfd + 1, &read_fds, &write_fds, &except_fds, NULL);
         switch (activity) {
           case -1:
@@ -154,17 +173,9 @@ int main(int argc, char **argv)
             printf("select() returns 0.\n");
             shutdown_properly(EXIT_FAILURE);
           default: {
-              if (FD_ISSET(qd_server, &mq_read)) {
-                  printf("privet");
-                  char in_buffer [MSG_BUFFER_SIZE];
-                  unsigned int size = mq_receive (qd_server, in_buffer, MSG_BUFFER_SIZE, NULL);
-                  if (size == -1) {
-                      perror (" ERROR ! Reciever: mq_receive");
-                      exit (1);
-                  } else {
-                      in_buffer[size+1]='\0';
-                      printf ("Reciever: message received: %s", in_buffer);
-                  }
+              if (FD_ISSET(server.socket, &write_fds)) {
+                  if (sp_send(&server) != 0)
+                      shutdown_properly(EXIT_FAILURE);
               }
               if (FD_ISSET(STDIN_FILENO, &read_fds)) {
                   if (handle_read_from_stdin(&server, client_name) != 0)
@@ -178,10 +189,7 @@ int main(int argc, char **argv)
                   if (sp_recv(&server, &client_message_handler) != 0)
                       shutdown_properly(EXIT_FAILURE);
               }
-              if (FD_ISSET(server.socket, &write_fds)) {
-                  if (sp_send(&server) != 0)
-                      shutdown_properly(EXIT_FAILURE);
-              }
+
               if (FD_ISSET(server.socket, &except_fds)) {
                   printf("except_fds for server.\n");
                   shutdown_properly(EXIT_FAILURE);

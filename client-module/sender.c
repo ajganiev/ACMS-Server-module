@@ -2,16 +2,10 @@
 #include <stdlib.h>
 #include <string.h>
 #include <sys/types.h>
-
+#include "config.h"
 #include <fcntl.h>
 #include <sys/stat.h>
 #include <mqueue.h>
-
-#define SERVER_QUEUE_NAME   "/olo"
-#define QUEUE_PERMISSIONS 0777
-#define MAX_MESSAGES 10
-#define MAX_MSG_SIZE 50
-#define MSG_BUFFER_SIZE MAX_MSG_SIZE + 10
 
 int main (int argc, char **argv)
 {
@@ -24,13 +18,13 @@ int main (int argc, char **argv)
 
     attr.mq_flags = 0;
     attr.mq_maxmsg = MAX_MESSAGES;
-    attr.mq_msgsize = MAX_MSG_SIZE;
+    attr.mq_msgsize = MAX_MQ_MSG_SIZE;
     attr.mq_curmsgs = 0;
 
     char out_buffer [MSG_BUFFER_SIZE] = "Suck";
 
 
-    if ((qd_client = mq_open (SERVER_QUEUE_NAME, O_WRONLY)) == 1) {
+    if ((qd_client = mq_open (CLIENT_QUEUE_NAME, O_WRONLY)) == 1) {
         perror ("Sender: Not able to open client queue");
     }
 

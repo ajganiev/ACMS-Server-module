@@ -7,11 +7,7 @@
 #include <sys/stat.h>
 #include <mqueue.h>
 
-#define SERVER_QUEUE_NAME   "/olo3"
-#define QUEUE_PERMISSIONS 0777
-#define MAX_MESSAGES 10
-#define MAX_MSG_SIZE 1024
-#define MSG_BUFFER_SIZE MAX_MSG_SIZE + 10
+#include "config.h"
 
 
 #define SENDER_MAXSIZE 128

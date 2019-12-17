@@ -11,7 +11,8 @@
 #define SERVER_LISTEN_PORT 3556
 
 
-#define SERVER_QUEUE_NAME   "/olo3"
+#define SERVER_QUEUE_NAME   "/mq-server"
+#define CLIENT_QUEUE_NAME   "/mq-client"
 #define QUEUE_PERMISSIONS 0777
 #define MAX_MESSAGES 10
 #define MAX_MQ_MSG_SIZE 1024
