@@ -43,7 +43,7 @@ int client_message_handler(socket_peer * peer, g_msg* msg) {
     switch (msg->command) {
         case P_AUTH_RESP: {
             handle_p_auth_resp(msg);
-//            char out_buffer [60] = "Suck";
+            //todo:: здесь должен быть парсер стракта в жсон
             if (mq_send(*peer->qd_client, (const char*) msg, sizeof(g_msg), 0) == -1)
                 perror ("Sender: Not able to send message to client");
             else

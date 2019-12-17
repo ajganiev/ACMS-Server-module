@@ -47,7 +47,8 @@ void mq_routine(void *args) {
         } else {
             in_buffer[size+1]='\0';
             printf ("Reciever: message received: %s\n", in_buffer);
-            send_auth();
+            //todo:: здесь должен быть парсер жсона
+            send_auth(); //for example
             if (sp_send(&server) != 0)
                 shutdown_properly(EXIT_FAILURE);
         }
@@ -161,7 +162,7 @@ int main(int argc, char **argv)
     fd_set mq_read;
     int maxfd = server.socket;
     pthread_create(&mq_thread, NULL, mq_routine, &server);
-    send_auth();
+    //send_auth();
     while (1) {
         build_fd_sets(&server, &read_fds, &write_fds, &except_fds);
         int activity = select(maxfd + 1, &read_fds, &write_fds, &except_fds, NULL);
