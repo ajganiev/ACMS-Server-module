@@ -12,6 +12,7 @@
 #include "msg.h"
 #include "console.h"
 #include "../protocol/proto-server.h"
+#include <pthread.h>
 
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wmissing-noreturn"
@@ -23,6 +24,7 @@
 
 int listen_sock;
 socket_peer connection_list[MAX_CLIENTS];
+pthread_t worker_thread;
 
 void shutdown_properly(int code);
 
@@ -68,6 +70,7 @@ void shutdown_properly(int code)
   for (i = 0; i < MAX_CLIENTS; ++i)
     if (connection_list[i].socket != NO_SOCKET)
       close(connection_list[i].socket);
+    pthread_join(worker_thread, NULL);
   printf("[ACMS] Shutting down.\n");
   exit(code);
 }
@@ -156,14 +159,24 @@ int stdin_handler()
     return 0;
 }
 
-//int default_msg_handler(socket_peer *peer, g_msg *message)
-//{
-//    log_msg(message);
-//    switch (message->command) {
-//        case 0: handle_p_auth(peer, message);
-//    }
-//    return 0;
-//}
+void worker(void* args) {
+    int c = 0;
+    while(1) {
+        g_msg msg;
+        test_pck data = { 3};
+        prepare_packet(2, "server-001", &msg, &data, sizeof(data));
+        broadcast_pck(&msg);
+        for (int i = 0; i < MAX_CLIENTS; ++i) {
+            if(connection_list[i].socket != NO_SOCKET)
+                if (sp_send(&connection_list[i]) != 0) {
+                    close_client_connection(&connection_list[i]);
+                    continue;
+                }
+        }
+        sleep(2);
+    }
+}
+
  
 int main(int argc, char **argv)
 {
@@ -181,6 +194,7 @@ int main(int argc, char **argv)
     fd_set write_fds;
     fd_set except_fds;
     int high_sock = listen_sock;
+//    pthread_create(&worker_thread, NULL, worker, &connection_list);
     while (1) {
         build_fd_sets(&read_fds, &write_fds, &except_fds);
         high_sock = listen_sock;

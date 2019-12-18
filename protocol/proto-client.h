@@ -7,6 +7,10 @@
 #include "app_cl_handlers.h"
 #include "../server/socket.h"
 #include "mqueue.h"
+#include "../frozen.h"
+#include "../protocol/2json.h"
+
+
 
 size_t pl_size[APP_MSG_NUM];
 
@@ -38,13 +42,16 @@ int log_msg(g_msg *message)
 }
 
 
+
 int client_message_handler(socket_peer * peer, g_msg* msg) {
     log_msg(msg);
     switch (msg->command) {
         case P_AUTH_RESP: {
             handle_p_auth_resp(msg);
+            char json[2048];
+            p_auth_resp2json(json, 2048, msg);
             //todo:: здесь должен быть парсер стракта в жсон
-            if (mq_send(*peer->qd_client, (const char*) msg, sizeof(g_msg), 0) == -1)
+            if (mq_send(*peer->qd_client, (const char*) json, MAX_MQ_MSG_SIZE, 0) == -1)
                 perror ("Sender: Not able to send message to client");
             else
                 printf("[ACMS][MQ] Sended: %s\n", (char*)&msg);

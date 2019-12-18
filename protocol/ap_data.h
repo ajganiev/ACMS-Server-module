@@ -8,7 +8,8 @@
 
 typedef enum {
     P_AUTH = 0,
-    P_AUTH_RESP = 1
+    P_AUTH_RESP = 1,
+    P_TEST = 2
 } APP_CMD;
 
 typedef struct {
@@ -20,6 +21,10 @@ typedef struct {
 typedef struct {
     int status;
 } p_auth_resp;
+
+typedef struct {
+    int test;
+} test_pck;
 
 
 #endif //ACMS_SERVER_AP_DATA_H

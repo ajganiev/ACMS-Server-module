@@ -15,4 +15,15 @@ p_auth_resp handle_p_auth(g_msg *msg) {
     return resp;
 }
 
+void* handle_change_height_speed();
+
+void* handle_change_dest();
+
+void* handle_delay_flight();
+
+void* handle_cancel_flight();
+
+void* handle_get_schedule();
+
+
 #endif //ACMS_SERVER_APP_SV_HANDLERS_H

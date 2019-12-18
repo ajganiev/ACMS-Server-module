@@ -26,7 +26,7 @@ int main (int argc, char **argv)
 
     attr.mq_flags = 0;
     attr.mq_maxmsg = MAX_MESSAGES;
-    attr.mq_msgsize = sizeof(g_msg);
+    attr.mq_msgsize = MAX_MQ_MSG_SIZE;
     attr.mq_curmsgs = 0;
 
     if ((qd_server = mq_open (SERVER_QUEUE_NAME, O_RDONLY | O_CREAT, QUEUE_PERMISSIONS, &attr)) == -1) {
@@ -38,13 +38,13 @@ int main (int argc, char **argv)
 
     while (1) {
         // get the oldest message with highest priority
-        unsigned int size = mq_receive (qd_server, (char*) &msg, sizeof(g_msg), NULL);
+        unsigned int size = mq_receive (qd_server, in_buffer, MSG_BUFFER_SIZE, NULL);
         if (size == -1) {
             perror (" ERROR ! Reciever: mq_receive");
-            exit (1);
+//            exit (1);
         } else {
             in_buffer[size+1]='\0';
-            printf ("Reciever: message received: %s \n", msg.sender);
+            printf ("Reciever: message received: %s \n", in_buffer);
         }
 
     }
