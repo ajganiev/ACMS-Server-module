@@ -1,5 +1,6 @@
 #ifndef ACMS_SERVER_AP_DATA_H
 #define ACMS_SERVER_AP_DATA_H
+
 #include "../server/msg.h"
 
 /**
@@ -16,6 +17,15 @@ typedef struct {
     char login[10];
     char pass[10];
 } p_auth;
+
+void generate_p_auth_JSON(char *out, size_t size, p_auth *data) {
+    struct json_out outBuf = JSON_OUT_BUF(out, size);
+    json_printf(&outBuf,
+                "{name: %Q, login:%Q,  pass: %Q}",
+                data->name,
+                data->login,
+                data->pass);
+}
 
 typedef struct {
     int status;

@@ -37,13 +37,14 @@ int log_msg(g_msg *message)
     printf("[ACMS][MSG:%d] => Type: %d || Sender %s \n", message->id, message->command, message->sender);
 }
 
-
+// I want to sleep...
 int client_message_handler(socket_peer * peer, g_msg* msg) {
     log_msg(msg);
     switch (msg->command) {
         case P_AUTH_RESP: {
             handle_p_auth_resp(msg);
             //todo:: здесь должен быть парсер стракта в жсон
+
             if (mq_send(*peer->qd_client, (const char*) msg, sizeof(g_msg), 0) == -1)
                 perror ("Sender: Not able to send message to client");
             else
