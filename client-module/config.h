@@ -5,17 +5,17 @@
 #define MAX_MESSAGES_BUFFER_SIZE 10
 
 #define SENDER_MAXSIZE 128
-#define DATA_MAXSIZE 1024
+#define DATA_MAXSIZE 2048
 
 #define SERVER_IPV4_ADDR "127.0.0.1"
 #define SERVER_LISTEN_PORT 3556
 
 
-#define SERVER_QUEUE_NAME   "/mq-server"
-#define CLIENT_QUEUE_NAME   "/mq-client"
+#define SERVER_QUEUE_NAME   "/testee"
+#define CLIENT_QUEUE_NAME   "/testee2"
 #define QUEUE_PERMISSIONS 0777
 #define MAX_MESSAGES 10
-#define MAX_MQ_MSG_SIZE 2048
+#define MAX_MQ_MSG_SIZE 8192
 #define MSG_BUFFER_SIZE MAX_MQ_MSG_SIZE + 10
 
 #endif //UNTITLED_CONFIG_H

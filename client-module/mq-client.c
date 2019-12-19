@@ -56,7 +56,7 @@ void mq_routine(void *args) {
             in_buffer[size+1]='\0';
             printf ("Reciever: message received: %s\n", in_buffer);
             //todo:: здесь должен быть парсер жсона
-            send_auth(); //for example
+//            send_auth(); //for example
             if (sp_send(&server) != 0)
                 shutdown_properly(EXIT_FAILURE);
         }
@@ -145,6 +145,7 @@ void shutdown_properly(int code)
     printf("[ACMS Client] Going down.\n");
     exit(code);
 }
+
 
 
 void get_route() {

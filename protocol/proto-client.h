@@ -56,6 +56,16 @@ int client_message_handler(socket_peer * peer, g_msg* msg) {
                 printf("[ACMS][MQ] Sended: %s\n", (char*)&msg);
             break;
         }
+        case P_AIRPLANE_BROADCAST: {
+            char json[MAX_MQ_MSG_SIZE];
+            p_planes_resp2json(json, MAX_MQ_MSG_SIZE, msg);
+            if (mq_send(*peer->qd_client, (const char*) json, strlen(json), 0) == -1)
+                perror ("Sender: Not able to send message to client");
+            else
+                printf("[ACMS][MQ] Sended: %s\n", json);
+            break;
+        }
+
         case P_ROUTE: {
             route *pck = (route*) msg->payload;
             printf("Route ID: %s %s %s\n", pck->routes[0].uuid, pck->routes[1].uuid, pck->routes[2].uuid);
