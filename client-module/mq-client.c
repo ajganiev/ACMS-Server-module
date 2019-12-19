@@ -38,6 +38,13 @@ int setup_posix_mq_client() {
     return 0;
 }
 
+void send_auth() {
+    g_msg msg;
+    p_auth p = {"Aziz", "ajganiev", "123"};
+    prepare_packet_id(P_AUTH, client_name, &msg, &p, sizeof(p_auth));
+    server_mq_send(&server, &msg);
+}
+
 void mq_routine(void *args) {
     socket_peer *sr = args;
     while(1) {
@@ -49,7 +56,7 @@ void mq_routine(void *args) {
             in_buffer[size+1]='\0';
             printf ("Reciever: message received: %s\n", in_buffer);
             //todo:: здесь должен быть парсер жсона
-            send_auth(); //for example
+//            send_auth(); //for example
             if (sp_send(&server) != 0)
                 shutdown_properly(EXIT_FAILURE);
         }
@@ -141,12 +148,6 @@ void shutdown_properly(int code)
 
 
 
-void send_auth() {
-    g_msg msg;
-    p_auth p = {"Aziz", "ajganiev", "123"};
-    prepare_packet_id(P_AUTH, client_name, &msg, &p, sizeof(p_auth));
-    server_mq_send(&server, &msg);
-}
 
 int main(int argc, char **argv)
 {

@@ -11,7 +11,7 @@
 
 
 #define SENDER_MAXSIZE 128
-#define DATA_MAXSIZE 1024
+#define DATA_MAXSIZE 2048
 #include "../protocol/ap_data.h"
 
 
