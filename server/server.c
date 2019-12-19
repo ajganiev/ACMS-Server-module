@@ -194,7 +194,7 @@ int main(int argc, char **argv)
     fd_set write_fds;
     fd_set except_fds;
     int high_sock = listen_sock;
-//    pthread_create(&worker_thread, NULL, worker, &connection_list);
+    //pthread_create(&worker_thread, NULL, worker, &connection_list);
     while (1) {
         build_fd_sets(&read_fds, &write_fds, &except_fds);
         high_sock = listen_sock;

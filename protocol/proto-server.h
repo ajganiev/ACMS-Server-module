@@ -47,6 +47,13 @@ int server_message_handler(socket_peer * peer, g_msg* msg) {
             prepare_packet(P_AUTH_RESP, "server-001", &answer, &data, sizeof(p_auth_resp));
             server_mq_send(peer, &answer);
         }
+        case P_ROUTE: {
+            g_msg answer;
+            answer.id = msg->id; // response have same id as request
+            route data = routes;
+            prepare_packet(P_ROUTE, "server-001", &answer, &data, sizeof(route));
+            server_mq_send(peer, &answer);
+        }
     }
 };
 

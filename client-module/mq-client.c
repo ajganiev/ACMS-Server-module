@@ -38,6 +38,13 @@ int setup_posix_mq_client() {
     return 0;
 }
 
+void send_auth() {
+    g_msg msg;
+    p_auth p = {"Aziz", "ajganiev", "123"};
+    prepare_packet_id(P_AUTH, client_name, &msg, &p, sizeof(p_auth));
+    server_mq_send(&server, &msg);
+}
+
 void mq_routine(void *args) {
     socket_peer *sr = args;
     while(1) {
@@ -124,7 +131,7 @@ int handle_read_from_stdin(socket_peer *server, char *client_name)
     if (read_console(read_buffer, DATA_MAXSIZE) != 0) return -1;
 //    g_msg new_message;
 //    init_handlers();
-//    p_auth p = {"Aziz", "ajganiev", "123"};
+//    p_auth p = {"DDD", "123", "123"};
 //    prepare_packet(0, client_name, &new_message, &p);
 //    log_msg(&new_message);
 //    mq_send(server, &new_message);
@@ -140,11 +147,10 @@ void shutdown_properly(int code)
 }
 
 
-
-void send_auth() {
+void get_route() {
     g_msg msg;
-    p_auth p = {"Aziz", "ajganiev", "123"};
-    prepare_packet_id(P_AUTH, client_name, &msg, &p, sizeof(p_auth));
+    route p;
+    prepare_packet_id(P_ROUTE, client_name, &msg, &p, sizeof(route));
     server_mq_send(&server, &msg);
 }
 
@@ -165,7 +171,7 @@ int main(int argc, char **argv)
     fd_set mq_read;
     int maxfd = server.socket;
     pthread_create(&mq_thread, NULL, mq_routine, &server);
-    send_auth();
+    get_route();
     while (1) {
         build_fd_sets(&server, &read_fds, &write_fds, &except_fds);
         int activity = select(maxfd + 1, &read_fds, &write_fds, &except_fds, NULL);

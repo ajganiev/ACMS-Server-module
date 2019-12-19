@@ -11,7 +11,6 @@
 #include "../protocol/2json.h"
 
 
-
 size_t pl_size[APP_MSG_NUM];
 
 void init_handlers() {
@@ -52,10 +51,14 @@ int client_message_handler(socket_peer * peer, g_msg* msg) {
             p_auth_resp2json(json, 2048, msg);
             //todo:: здесь должен быть парсер стракта в жсон
             if (mq_send(*peer->qd_client, (const char*) json, MAX_MQ_MSG_SIZE, 0) == -1)
-                perror ("Sender: Not able to send message to client");
+                perror ("MQ Sender: Not able to send message to client");
             else
                 printf("[ACMS][MQ] Sended: %s\n", (char*)&msg);
             break;
+        }
+        case P_ROUTE: {
+            route *pck = (route*) msg->payload;
+            printf("Route ID: %s %s %s\n", pck->routes[0].uuid, pck->routes[1].uuid, pck->routes[2].uuid);
         }
     }
 };
